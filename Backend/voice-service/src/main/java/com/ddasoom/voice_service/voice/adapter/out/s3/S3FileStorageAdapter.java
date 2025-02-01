@@ -2,6 +2,7 @@ package com.ddasoom.voice_service.voice.adapter.out.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.voice.application.domain.SoundFile;
 import com.ddasoom.voice_service.voice.application.port.out.UploadSoundFilePort;
 import java.io.ByteArrayInputStream;
@@ -19,6 +20,7 @@ public class S3FileStorageAdapter implements UploadSoundFilePort {
 
     private final AmazonS3 amazonS3;
 
+    @TimeTrace
     @Override
     public void uploadSoundFiles(List<SoundFile> files) {
         files.forEach(this::uploadSoundFile);

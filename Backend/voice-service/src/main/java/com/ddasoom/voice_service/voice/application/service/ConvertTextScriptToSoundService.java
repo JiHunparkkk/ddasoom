@@ -1,5 +1,6 @@
 package com.ddasoom.voice_service.voice.application.service;
 
+import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.common.annotation.UseCase;
 import com.ddasoom.voice_service.voice.application.domain.SoundFile;
 import com.ddasoom.voice_service.voice.application.port.in.ConvertTextScriptToSoundUseCase;
@@ -18,6 +19,7 @@ public class ConvertTextScriptToSoundService implements ConvertTextScriptToSound
     private final UploadSoundFilePort uploadSoundFilePort;
 
     @Override
+    @TimeTrace  //스크립트 변환시간 + S3
     public void convertTextScriptToSoundUseCase(String voiceKey) {
         List<SoundFile> soundFiles = convertTextScriptToSoundPort.convertTextScriptToSoundPort(voiceKey);
 

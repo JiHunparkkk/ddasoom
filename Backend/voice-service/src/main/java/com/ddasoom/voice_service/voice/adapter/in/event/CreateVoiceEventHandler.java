@@ -1,5 +1,6 @@
 package com.ddasoom.voice_service.voice.adapter.in.event;
 
+import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.voice.application.port.in.ConvertTextScriptToSoundUseCase;
 import com.ddasoom.voice_service.voice.application.port.in.CreateVoiceCommand;
 import com.ddasoom.voice_service.voice.application.port.in.CreateVoiceUseCase;
@@ -17,6 +18,7 @@ public class CreateVoiceEventHandler {
 
     @Async
     @EventListener
+    @TimeTrace  //모든 시간
     public void createVoice(CreateVoiceEvent event) {
         String voiceKey = createVoiceUseCase.createVoice(
                 new CreateVoiceCommand(event.userId(), event.voiceName(), event.voices())

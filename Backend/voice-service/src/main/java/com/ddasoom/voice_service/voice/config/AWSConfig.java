@@ -1,5 +1,6 @@
 package com.ddasoom.voice_service.voice.config;
 
+import static com.amazonaws.regions.Regions.AP_NORTHEAST_2;
 import static com.amazonaws.regions.Regions.AP_SOUTHEAST_2;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -26,7 +27,7 @@ public class AWSConfig {
 
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withRegion(AP_SOUTHEAST_2)
+                .withRegion(AP_NORTHEAST_2)
                 .build();
     }
 }

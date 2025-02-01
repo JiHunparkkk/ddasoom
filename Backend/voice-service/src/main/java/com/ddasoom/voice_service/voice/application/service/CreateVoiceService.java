@@ -1,5 +1,6 @@
 package com.ddasoom.voice_service.voice.application.service;
 
+import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.common.annotation.UseCase;
 import com.ddasoom.voice_service.voice.application.port.in.CreateVoiceCommand;
 import com.ddasoom.voice_service.voice.application.port.in.CreateVoiceUseCase;
@@ -17,6 +18,7 @@ public class CreateVoiceService implements CreateVoiceUseCase {
     private final CreateVoicePort createVoicePort;
 
     @Override
+    @TimeTrace  //key 생성 시간
     public String createVoice(CreateVoiceCommand command) {
         String voiceKey = trainAiVoicePort.trainAiVoice(command.voices());
 

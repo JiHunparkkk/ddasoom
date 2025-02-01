@@ -3,6 +3,7 @@ package com.ddasoom.voice_service.voice.adapter.out.elevenlabs;
 import static com.ddasoom.voice_service.voice.adapter.out.elevenlabs.ElevenLabsRequestUtils.sendRequest;
 import static com.ddasoom.voice_service.voice.adapter.out.elevenlabs.SpeechScript.speechScripts;
 
+import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TextToSpeechRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TrainAiVoiceRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.response.TrainAiVoiceResponse;
@@ -33,6 +34,7 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
         return response.voiceId();
     }
 
+    @TimeTrace
     @Override
     public List<SoundFile> convertTextScriptToSoundPort(String voiceKey) {
         return speechScripts().stream()
