@@ -11,11 +11,16 @@ import com.ddasoom.voice_service.voice.application.domain.SoundFile;
 import com.ddasoom.voice_service.voice.application.domain.Voice;
 import com.ddasoom.voice_service.voice.application.port.out.ConvertTextScriptToSoundPort;
 import com.ddasoom.voice_service.voice.application.port.out.TrainAiVoicePort;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Component
 @RequiredArgsConstructor
@@ -34,11 +39,32 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
         return response.voiceId();
     }
 
+//    @TimeTrace
+//    @Override
+//    public List<SoundFile> convertTextScriptToSoundPort(String voiceKey) {
+//        return speechScripts().stream()
+//                .map(script -> getSoundFile(voiceKey, script))
+//                .toList();
+//    }
+
     @TimeTrace
     @Override
     public List<SoundFile> convertTextScriptToSoundPort(String voiceKey) {
-        return speechScripts().stream()
-                .map(script -> getSoundFile(voiceKey, script))
+        List<Mono<Pair<Script, byte[]>>> requests = speechScripts().stream()
+                .map(script ->
+                        sendRequest(voiceKey, new TextToSpeechRequest(script.message()))
+                                .map(bytes -> Pair.of(script, bytes))
+                )
+                .toList();
+
+        List<Pair<Script, byte[]>> responses = Flux.fromIterable(requests)
+                .flatMap(request -> request
+                        .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))), 3)
+                .collectList()
+                .block();
+
+        return responses.stream()
+                .map(pair -> getSoundFile(voiceKey, pair.getFirst().code(), pair.getSecond()))
                 .toList();
     }
 
@@ -52,14 +78,21 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
         };
     }
 
-    private SoundFile getSoundFile(String voiceKey, Script script) {
-        byte[] bytes = sendRequest(
-                voiceKey,
-                new TextToSpeechRequest(script.message())
-        );
+//    private SoundFile getSoundFile(String voiceKey, Script script) {
+//        byte[] bytes = sendRequest(
+//                voiceKey,
+//                new TextToSpeechRequest(script.message())
+//        );
+//
+//        return new SoundFile(
+//                String.format("%s-%s.mp3", voiceKey, script.code()),
+//                bytes
+//        );
+//    }
 
+    private SoundFile getSoundFile(String voiceKey, String scriptCode, byte[] bytes) {
         return new SoundFile(
-                String.format("%s-%s.mp3", voiceKey, script.code()),
+                String.format("%s-%s.mp3", voiceKey, scriptCode),
                 bytes
         );
     }

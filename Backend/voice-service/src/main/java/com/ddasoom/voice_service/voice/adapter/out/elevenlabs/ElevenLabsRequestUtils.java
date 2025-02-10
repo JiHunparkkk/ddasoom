@@ -11,16 +11,24 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ElevenLabsRequestUtils {
 
     private static final RestClient restClient;
+    private static final WebClient webClient;
 
     static {
         restClient = RestClient.builder()
                 .baseUrl("https://api.elevenlabs.io")
-                .defaultHeader("xi-api-key", "sk_2ff2c593c65116b4f22f94c7ae2a77b77986f005c314683e")
+                .defaultHeader("xi-api-key", "-")
+                .build();
+
+        webClient = WebClient.builder()
+                .baseUrl("https://api.elevenlabs.io")
+                .defaultHeader("xi-api-key", "-")
                 .build();
     }
 
@@ -37,12 +45,21 @@ public abstract class ElevenLabsRequestUtils {
                 .body(TrainAiVoiceResponse.class);
     }
 
-    public static byte[] sendRequest(String voiceKey, TextToSpeechRequest request) {
-        return restClient.post()
+//    public static byte[] sendRequest(String voiceKey, TextToSpeechRequest request) {
+//        return restClient.post()
+//                .uri("/v1/text-to-speech/" + voiceKey)
+//                .contentType(APPLICATION_JSON)
+//                .body(request)
+//                .retrieve()
+//                .body(byte[].class);
+//    }
+
+    public static Mono<byte[]> sendRequest(String voiceKey, TextToSpeechRequest request) {
+        return webClient.post()
                 .uri("/v1/text-to-speech/" + voiceKey)
                 .contentType(APPLICATION_JSON)
-                .body(request)
+                .bodyValue(request)
                 .retrieve()
-                .body(byte[].class);
+                .bodyToMono(byte[].class);
     }
 }
