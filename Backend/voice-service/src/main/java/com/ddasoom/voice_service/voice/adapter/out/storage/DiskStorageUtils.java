@@ -7,14 +7,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class DiskStorageUtils {
 
     private static final Path DIR_PATH = Paths.get(
             "/Users/jihunpark/Desktop/SSAFY/refactoring/ddasoom/Backend/voice-service/backup-sounds");
 
-    public static void saveToDisk(SoundFile soundFile) {
+    public void saveToDisk(SoundFile soundFile) {
         Path filePath = DIR_PATH.resolve(soundFile.fileName());
 
         try {
@@ -26,13 +28,13 @@ public class DiskStorageUtils {
         }
     }
 
-    public static boolean fileExistsInDir(String fileName) {
+    public boolean fileExistsInDir(String fileName) {
         Path filePath = DIR_PATH.resolve(fileName);
 
         return Files.exists(filePath);
     }
 
-    public static Optional<byte[]> readFromDisk(String fileName) {
+    public Optional<byte[]> readFromDisk(String fileName) {
         Path filePath = DIR_PATH.resolve(fileName);
 
         try {
@@ -43,9 +45,9 @@ public class DiskStorageUtils {
         return Optional.empty();
     }
 
-    public static void deleteFromDisk(String fileName) {
+    public void deleteFromDisk(String fileName) {
         Path filePath = DIR_PATH.resolve(fileName);
-        
+
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {

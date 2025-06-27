@@ -1,14 +1,12 @@
 package com.ddasoom.voice_service.voice.adapter.out.elevenlabs;
 
-import static com.ddasoom.voice_service.voice.adapter.out.elevenlabs.ElevenLabsRequestUtils.sendRequest;
 import static com.ddasoom.voice_service.voice.adapter.out.elevenlabs.SpeechScript.speechScripts;
-import static com.ddasoom.voice_service.voice.adapter.out.storage.DiskStorageUtils.saveToDisk;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TextToSpeechRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TrainAiVoiceRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.response.TrainAiVoiceResponse;
+import com.ddasoom.voice_service.voice.adapter.out.storage.DiskStorageUtils;
 import com.ddasoom.voice_service.voice.adapter.out.storage.S3FileStorageUtils;
 import com.ddasoom.voice_service.voice.application.domain.SoundFile;
 import com.ddasoom.voice_service.voice.application.domain.Voice;
@@ -34,7 +32,8 @@ import reactor.util.retry.Retry;
 public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextScriptToSoundPort {
 
     private final S3FileStorageUtils s3Storage;
-    private final AmazonS3 amazonS3;
+    private final ElevenLabsRequestUtils elevenLabsRequestUtils;
+    private final DiskStorageUtils diskStorage;
 
     @Override
     public String trainAiVoice(List<Voice> voices) {
@@ -42,7 +41,7 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
                 .map(this::convertByteArrayToResource)
                 .toList();
 
-        TrainAiVoiceResponse response = sendRequest(
+        TrainAiVoiceResponse response = elevenLabsRequestUtils.sendRequest(
                 new TrainAiVoiceRequest(UUID.randomUUID().toString(), voiceFiles)
         );
 
@@ -104,7 +103,8 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
     private List<Mono<Pair<Script, byte[]>>> getMonos(String voiceKey) {
         return speechScripts().stream()
                 .map(script ->
-                        sendRequest(voiceKey, new TextToSpeechRequest(script.message()))
+                        elevenLabsRequestUtils
+                                .sendRequest(voiceKey, new TextToSpeechRequest(script.message()))
                                 .map(bytes -> Pair.of(script, bytes))
                 )
                 .toList();
@@ -116,7 +116,8 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
                     String voiceKey = entry.getKey();
                     return entry.getValue().stream()
                             .map(script ->
-                                    sendRequest(voiceKey, new TextToSpeechRequest(script.message()))
+                                    elevenLabsRequestUtils
+                                            .sendRequest(voiceKey, new TextToSpeechRequest(script.message()))
                                             .map(bytes -> new ScriptRequest(voiceKey, script, bytes))
                             );
                 })
@@ -141,7 +142,7 @@ public class ElevenLabsAiVoiceAdapter implements TrainAiVoicePort, ConvertTextSc
         try {
             s3Storage.uploadSoundFile(soundFile);
         } catch (Exception e) {
-            saveToDisk(soundFile);
+            diskStorage.saveToDisk(soundFile);
             uploadFailCount.incrementAndGet();
         }
     }

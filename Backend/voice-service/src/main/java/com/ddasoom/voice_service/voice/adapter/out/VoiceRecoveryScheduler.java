@@ -1,7 +1,6 @@
 package com.ddasoom.voice_service.voice.adapter.out;
 
 import static com.ddasoom.voice_service.voice.adapter.out.elevenlabs.SpeechScript.speechScripts;
-import static com.ddasoom.voice_service.voice.adapter.out.storage.DiskStorageUtils.readFromDisk;
 
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.ElevenLabsAiVoiceAdapter;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.Script;
@@ -29,6 +28,7 @@ public class VoiceRecoveryScheduler {
     private final VoiceRepository voiceRepository;
     private final S3FileStorageUtils s3Storage;
     private final ElevenLabsAiVoiceAdapter elevenLabsAiVoiceAdapter;
+    private final DiskStorageUtils diskStorage;
 
     @Scheduled(cron = "0 0 3 * * *")
     private void checkVoiceConcurrency() {
@@ -48,7 +48,7 @@ public class VoiceRecoveryScheduler {
                             return;
                         }
 
-                        readFromDisk(fileName).ifPresentOrElse(
+                        diskStorage.readFromDisk(fileName).ifPresentOrElse(
                                 bytes -> uploadDiskToS3(fileName, bytes),
                                 () -> convertTextToSpeech(voiceKey, fileName, remainScript)
                         );
@@ -65,7 +65,7 @@ public class VoiceRecoveryScheduler {
 
     private void uploadDiskToS3(String fileName, byte[] bytes) {
         s3Storage.uploadSoundFile(fileName, bytes);
-        DiskStorageUtils.deleteFromDisk(fileName);
+        diskStorage.deleteFromDisk(fileName);
         log.info("✅디스크 -> S3 업로드 완료!");
     }
 

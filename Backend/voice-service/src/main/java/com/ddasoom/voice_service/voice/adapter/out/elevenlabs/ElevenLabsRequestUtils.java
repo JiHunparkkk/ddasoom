@@ -1,38 +1,37 @@
 package com.ddasoom.voice_service.voice.adapter.out.elevenlabs;
 
-import static lombok.AccessLevel.PRIVATE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TextToSpeechRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.request.TrainAiVoiceRequest;
 import com.ddasoom.voice_service.voice.adapter.out.elevenlabs.response.TrainAiVoiceResponse;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-@NoArgsConstructor(access = PRIVATE)
-public abstract class ElevenLabsRequestUtils {
+@Component
+public class ElevenLabsRequestUtils {
 
-    private static final RestClient restClient;
-    private static final WebClient webClient;
+    private final RestClient restClient;
+    private final WebClient webClient;
 
-    static {
+    public ElevenLabsRequestUtils() {
         restClient = RestClient.builder()
                 .baseUrl("https://api.elevenlabs.io")
-                .defaultHeader("xi-api-key", "-")
+                .defaultHeader("xi-api-key", "sk_1684419aac51f52ca4d65c18cab0d66a2261bf012fe00c00")
                 .build();
 
         webClient = WebClient.builder()
                 .baseUrl("https://api.elevenlabs.io")
-                .defaultHeader("xi-api-key", "-")
+                .defaultHeader("xi-api-key", "sk_1684419aac51f52ca4d65c18cab0d66a2261bf012fe00c00")
                 .build();
     }
 
-    public static TrainAiVoiceResponse sendRequest(TrainAiVoiceRequest request) {
+    public TrainAiVoiceResponse sendRequest(TrainAiVoiceRequest request) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("name", request.getName());
         request.getFiles().forEach(file -> body.add("files", file));
@@ -45,16 +44,7 @@ public abstract class ElevenLabsRequestUtils {
                 .body(TrainAiVoiceResponse.class);
     }
 
-//    public static byte[] sendRequest(String voiceKey, TextToSpeechRequest request) {
-//        return restClient.post()
-//                .uri("/v1/text-to-speech/" + voiceKey)
-//                .contentType(APPLICATION_JSON)
-//                .body(request)
-//                .retrieve()
-//                .body(byte[].class);
-//    }
-
-    public static Mono<byte[]> sendRequest(String voiceKey, TextToSpeechRequest request) {
+    public Mono<byte[]> sendRequest(String voiceKey, TextToSpeechRequest request) {
         return webClient.post()
                 .uri("/v1/text-to-speech/" + voiceKey)
                 .contentType(APPLICATION_JSON)
