@@ -1,10 +1,9 @@
-package com.ddasoom.voice_service.voice.adapter.out.s3;
+package com.ddasoom.voice_service.voice.adapter.out.storage;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.ddasoom.voice_service.common.annotation.TimeTrace;
 import com.ddasoom.voice_service.voice.application.domain.SoundFile;
-import com.ddasoom.voice_service.voice.application.port.out.UploadSoundFilePort;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class S3FileStorageAdapter implements UploadSoundFilePort {
+public class S3FileStorageUtils {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -21,7 +20,6 @@ public class S3FileStorageAdapter implements UploadSoundFilePort {
     private final AmazonS3 amazonS3;
 
     @TimeTrace
-    @Override
     public void uploadSoundFiles(List<SoundFile> files) {
         files.forEach(this::uploadSoundFile);
     }
@@ -33,6 +31,14 @@ public class S3FileStorageAdapter implements UploadSoundFilePort {
                 new ByteArrayInputStream(file.bytes()),
                 getMetadata(file)
         );
+    }
+
+    public void uploadSoundFile(String fileName, byte[] bytes) {
+        uploadSoundFile(new SoundFile(fileName, bytes));
+    }
+
+    public boolean doesObjectExist(String fileName) {
+        return amazonS3.doesObjectExist(bucketName, fileName);
     }
 
     private ObjectMetadata getMetadata(SoundFile file) {
